@@ -11,11 +11,11 @@ export default function Shop() {
   const { addToCart } = useCart();
 
   useEffect(() => {
-    fetch("http://localhost:5002/api/products")
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products`)
       .then((res) => res.json())
       .then((data) => setProducts(data))
       .catch(() => {});
-    fetch("http://localhost:5002/api/products/categories")
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products/categories`)
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch(() => {});

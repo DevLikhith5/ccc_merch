@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, Search, ShoppingBag, ChevronDown } from "./Icons";
 import { useCart } from "../hooks/useCart";
+import { getMe } from "../services/api";
 
 const brands = ["Under Construction"];
 
@@ -10,7 +11,28 @@ export default function Header({ onMenuOpen }) {
   const [brandsOpen, setBrandsOpen] = useState(false);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [user, setUser] = useState(null);
   const { totalItems } = useCart();
+
+  function fetchUser() {
+    const token = localStorage.getItem("token");
+    if (token) {
+      getMe(token)
+        .then((data) => setUser(data))
+        .catch(() => {
+          localStorage.removeItem("token");
+          setUser(null);
+        });
+    } else {
+      setUser(null);
+    }
+  }
+
+  useEffect(() => {
+    fetchUser();
+    window.addEventListener("auth-change", fetchUser);
+    return () => window.removeEventListener("auth-change", fetchUser);
+  }, []);
 
   function handleSearch() {
     if (search.trim()) {
@@ -67,20 +89,38 @@ export default function Header({ onMenuOpen }) {
 
           <div className="dropdown">
             <button className="nav-link" onClick={() => setWelcomeOpen(!welcomeOpen)}>
-              Welcome! <ChevronDown />
+              {user ? `Hi, ${user.name}` : "Welcome!"} <ChevronDown />
             </button>
             {welcomeOpen && (
               <ul className="dropdown-menu">
-                <li>
-                  <Link to="/login" onClick={() => setWelcomeOpen(false)}>
-                    Login
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/signup" onClick={() => setWelcomeOpen(false)}>
-                    Sign Up
-                  </Link>
-                </li>
+                {user ? (
+                  <li>
+                    <button
+                      className="dropdown-link logout-btn"
+                      onClick={() => {
+                        localStorage.removeItem("token");
+                        setUser(null);
+                        setWelcomeOpen(false);
+                        navigate("/");
+                      }}
+                    >
+                      Logout
+                    </button>
+                  </li>
+                ) : (
+                  <>
+                    <li>
+                      <Link to="/login" onClick={() => setWelcomeOpen(false)}>
+                        Login
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/signup" onClick={() => setWelcomeOpen(false)}>
+                        Sign Up
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
             )}
           </div>

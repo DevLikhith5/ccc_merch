@@ -6,7 +6,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5002/api/products/categories")
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products/categories`)
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch(() => {});
